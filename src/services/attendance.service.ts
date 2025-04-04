@@ -1,5 +1,6 @@
 
 import { apiService } from './api';
+import { PaginatedResponse } from '@/types/interfaces';
 
 // Types
 export interface AttendanceRecord {

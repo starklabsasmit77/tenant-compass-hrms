@@ -1,5 +1,6 @@
 
 import { apiService } from './api';
+import { PaginatedResponse } from '@/types/interfaces';
 
 // Types
 export interface LeaveRequest {
@@ -31,10 +32,10 @@ export interface LeaveBalance {
 
 export interface LeaveFilters {
   employeeId?: string;
-  status?: string;
-  leaveType?: string;
   startDate?: string;
   endDate?: string;
+  status?: string;
+  leaveType?: string;
   page?: number;
   limit?: number;
 }
@@ -46,55 +47,53 @@ export const leaveService = {
     return apiService.get<PaginatedResponse<LeaveRequest>>('/leaves', { params: filters });
   },
   
-  // Get my leave requests
-  getMyLeaveRequests: (filters: Omit<LeaveFilters, 'employeeId'> = {}) => {
+  // Get current user's leave requests
+  getMyLeaves: (filters: Omit<LeaveFilters, 'employeeId'> = {}) => {
     return apiService.get<PaginatedResponse<LeaveRequest>>('/leaves/me', { params: filters });
   },
   
   // Get leave request by ID
-  getLeaveRequestById: (id: string) => {
+  getLeaveById: (id: string) => {
     return apiService.get<LeaveRequest>(`/leaves/${id}`);
   },
   
-  // Create new leave request
-  createLeaveRequest: (leaveRequest: Omit<LeaveRequest, 'id' | 'employeeId' | 'status' | 'createdAt'>) => {
-    return apiService.post<LeaveRequest>('/leaves', leaveRequest);
+  // Create leave request
+  createLeaveRequest: (data: Omit<LeaveRequest, 'id' | 'status' | 'employeeId' | 'employeeName' | 'approvedBy' | 'approvedAt' | 'createdAt'>) => {
+    return apiService.post<LeaveRequest>('/leaves', data);
   },
   
   // Update leave request
-  updateLeaveRequest: (id: string, leaveRequest: Partial<LeaveRequest>) => {
-    return apiService.put<LeaveRequest>(`/leaves/${id}`, leaveRequest);
+  updateLeaveRequest: (id: string, data: Partial<LeaveRequest>) => {
+    return apiService.put<LeaveRequest>(`/leaves/${id}`, data);
   },
   
-  // Cancel leave request
+  // Cancel leave request (by employee)
   cancelLeaveRequest: (id: string) => {
-    return apiService.patch<LeaveRequest>(`/leaves/${id}/cancel`, {});
+    return apiService.patch<LeaveRequest>(`/leaves/${id}/cancel`);
   },
   
-  // Approve leave request
+  // Approve leave request (by manager/HR)
   approveLeaveRequest: (id: string, comments?: string) => {
     return apiService.patch<LeaveRequest>(`/leaves/${id}/approve`, { comments });
   },
   
-  // Reject leave request
-  rejectLeaveRequest: (id: string, comments: string) => {
+  // Reject leave request (by manager/HR)
+  rejectLeaveRequest: (id: string, comments?: string) => {
     return apiService.patch<LeaveRequest>(`/leaves/${id}/reject`, { comments });
   },
   
-  // Get leave balance
-  getLeaveBalance: (employeeId: string) => {
+  // Get leave balances for an employee
+  getLeaveBalances: (employeeId: string) => {
     return apiService.get<LeaveBalance>(`/leaves/balance/${employeeId}`);
   },
   
-  // Get my leave balance
-  getMyLeaveBalance: () => {
+  // Get my leave balances
+  getMyLeaveBalances: () => {
     return apiService.get<LeaveBalance>('/leaves/balance/me');
   },
   
-  // Check if dates are available for leave
-  checkLeaveAvailability: (startDate: string, endDate: string) => {
-    return apiService.get<{ available: boolean; conflictingDays?: string[] }>('/leaves/check-availability', {
-      params: { startDate, endDate }
-    });
+  // Update leave balance (HR/admin only)
+  updateLeaveBalance: (employeeId: string, data: Partial<LeaveBalance>) => {
+    return apiService.put<LeaveBalance>(`/leaves/balance/${employeeId}`, data);
   }
 };
