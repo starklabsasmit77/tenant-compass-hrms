@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import TenantLogin from "../components/auth/TenantLogin";
+import DemoLoginForm from "../components/auth/DemoLoginForm";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
@@ -15,7 +15,13 @@ const Index = () => {
               </div>
               <span className="ml-3 text-xl font-bold">TenantHR</span>
             </div>
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center space-x-4">
+              <Button asChild variant="ghost">
+                <a href="#features">Features</a>
+              </Button>
+              <Button asChild variant="ghost">
+                <a href="#pricing">Pricing</a>
+              </Button>
               <Button asChild variant="ghost">
                 <Link to="/dashboard">Demo</Link>
               </Button>
@@ -37,10 +43,10 @@ const Index = () => {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button size="lg" asChild>
-                    <Link to="/dashboard">Request Demo</Link>
+                    <a href="#features">Get Started</a>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
-                    <Link to="/dashboard">Learn More</Link>
+                    <a href="#demo">Learn More</a>
                   </Button>
                 </div>
                 <div className="pt-6">
@@ -51,13 +57,13 @@ const Index = () => {
               </div>
               
               <div>
-                <TenantLogin />
+                <DemoLoginForm />
               </div>
             </div>
           </div>
         </section>
         
-        <section className="py-12 bg-gray-100">
+        <section id="features" className="py-12 bg-gray-100">
           <div className="container mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold">Complete HR Solution</h2>

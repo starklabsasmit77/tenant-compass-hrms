@@ -14,11 +14,18 @@ import {
   LogOut,
   Building,
   BriefcaseMedical,
-  CreditCard
+  CreditCard,
+  User,
+  FileCheck,
+  BarChart3,
+  Building2,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
+import { useUser, UserRole } from "@/contexts/UserContext";
+import { useNavigate } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,6 +39,58 @@ interface NavItemProps {
   isCollapsed: boolean;
   badge?: number;
 }
+
+// Navigation items based on user role
+const getNavItems = (role: UserRole) => {
+  // Common items for all roles
+  const commonItems = [
+    { icon: Home, text: "Dashboard", to: "/dashboard" },
+    { icon: User, text: "Profile", to: "/profile" },
+    { icon: Settings, text: "Settings", to: "/settings" },
+  ];
+
+  // Role-specific items
+  const roleItems: Record<UserRole, Array<{ icon: React.ElementType; text: string; to: string; badge?: number }>> = {
+    'employee': [
+      { icon: Clock, text: "Leave Requests", to: "/employee/leaves" },
+      { icon: Calendar, text: "My Attendance", to: "/employee/attendance" },
+      { icon: CreditCard, text: "Payslips", to: "/employee/payslips" },
+      { icon: FileCheck, text: "Documents", to: "/employee/documents" },
+    ],
+    'hr': [
+      { icon: Users, text: "Employees", to: "/employees" },
+      { icon: Calendar, text: "Attendance", to: "/attendance" },
+      { icon: Clock, text: "Leaves", to: "/leaves", badge: 3 },
+      { icon: BriefcaseMedical, text: "Benefits", to: "/benefits" },
+      { icon: FileText, text: "Reports", to: "/reports" },
+    ],
+    'accounts': [
+      { icon: CreditCard, text: "Payroll", to: "/payroll" },
+      { icon: FileText, text: "Reports", to: "/reports" },
+    ],
+    'org-admin': [
+      { icon: Users, text: "Employees", to: "/employees" },
+      { icon: Calendar, text: "Attendance", to: "/attendance" },
+      { icon: Clock, text: "Leaves", to: "/leaves" },
+      { icon: CreditCard, text: "Payroll", to: "/payroll" },
+      { icon: FileText, text: "Reports", to: "/reports" },
+      { icon: BriefcaseMedical, text: "Benefits", to: "/benefits" },
+      { icon: Building, text: "Organization", to: "/organization" },
+    ],
+    'super-admin': [
+      { icon: Building2, text: "Tenants", to: "/tenants" },
+      { icon: Users, text: "Employees", to: "/employees" },
+      { icon: Calendar, text: "Attendance", to: "/attendance" },
+      { icon: Clock, text: "Leaves", to: "/leaves" },
+      { icon: CreditCard, text: "Payroll", to: "/payroll" },
+      { icon: FileText, text: "Reports", to: "/reports" },
+      { icon: Globe, text: "Organization", to: "/organization" },
+      { icon: BarChart3, text: "Analytics", to: "/reports" },
+    ],
+  };
+
+  return [...roleItems[role], ...commonItems];
+};
 
 const NavItem = ({ icon: Icon, text, to, isActive, isCollapsed, badge }: NavItemProps) => {
   return (
@@ -48,7 +107,7 @@ const NavItem = ({ icon: Icon, text, to, isActive, isCollapsed, badge }: NavItem
       {!isCollapsed && (
         <span className="flex-1">{text}</span>
       )}
-      {!isCollapsed && badge && (
+      {!isCollapsed && badge !== undefined && (
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium">
           {badge}
         </span>
@@ -59,32 +118,32 @@ const NavItem = ({ icon: Icon, text, to, isActive, isCollapsed, badge }: NavItem
 
 const Layout = ({ children }: LayoutProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { toast } = useToast();
   const location = useLocation();
+  const { currentUser, logout } = useUser();
+  const navigate = useNavigate();
   
+  // Get navigation items based on user role
+  const navItems = currentUser ? getNavItems(currentUser.role) : [];
+
   // For demo purposes - in a real app this would come from an authentication context
-  const companyName = "TechCorp Inc.";
-  const userName = "John Doe";
+  const companyName = currentUser?.organizationId ? "TechCorp Inc." : "TenantHR Admin";
 
   const handleLogout = () => {
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully"
-    });
-    // In a real app, this would handle logout logic
+    logout();
+    toast.success("Logged out successfully");
+    navigate("/");
   };
 
-  const navItems = [
-    { icon: Home, text: "Dashboard", to: "/dashboard" },
-    { icon: Users, text: "Employees", to: "/employees" },
-    { icon: Calendar, text: "Attendance", to: "/attendance" },
-    { icon: Clock, text: "Leaves", to: "/leaves" },
-    { icon: CreditCard, text: "Payroll", to: "/payroll" },
-    { icon: FileText, text: "Reports", to: "/reports" },
-    { icon: BriefcaseMedical, text: "Benefits", to: "/benefits" },
-    { icon: Building, text: "Organization", to: "/organization" },
-    { icon: Settings, text: "Settings", to: "/settings" },
-  ];
+  const roleLabel = () => {
+    switch(currentUser?.role) {
+      case 'employee': return 'Employee';
+      case 'hr': return 'HR Manager';
+      case 'accounts': return 'Accounts Manager';
+      case 'org-admin': return 'Org Admin';
+      case 'super-admin': return 'System Admin';
+      default: return '';
+    }
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -125,7 +184,9 @@ const Layout = ({ children }: LayoutProps) => {
           </Avatar>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-sidebar-foreground/80">Company</span>
+              <span className="text-xs font-medium text-sidebar-foreground/80">
+                {currentUser?.role === 'super-admin' ? 'System' : 'Company'}
+              </span>
               <span className="text-sm font-semibold text-sidebar-foreground">{companyName}</span>
             </div>
           )}
@@ -142,6 +203,7 @@ const Layout = ({ children }: LayoutProps) => {
                 to={item.to} 
                 isActive={location.pathname === item.to}
                 isCollapsed={isCollapsed}
+                badge={item.badge}
               />
             ))}
           </div>
@@ -153,13 +215,17 @@ const Layout = ({ children }: LayoutProps) => {
           isCollapsed ? "justify-center" : ""
         )}>
           <Avatar className="h-8 w-8">
-            <AvatarImage src="" alt={userName} />
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">JD</AvatarFallback>
+            <AvatarImage src="" alt={currentUser?.name || ""} />
+            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+              {currentUser?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+            </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
             <div className="flex flex-1 flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">{userName}</span>
-              <span className="text-xs text-sidebar-foreground/70">HR Manager</span>
+              <span className="text-sm font-semibold text-sidebar-foreground">
+                {currentUser?.name || "User"}
+              </span>
+              <span className="text-xs text-sidebar-foreground/70">{roleLabel()}</span>
             </div>
           )}
           {!isCollapsed && (
