@@ -102,7 +102,7 @@ const employees = [
 const EmployeesPage = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
 
   const handleNewEmployee = () => {
     toast({
@@ -114,7 +114,7 @@ const EmployeesPage = () => {
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           employee.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDepartment = departmentFilter === "" || employee.department === departmentFilter;
+    const matchesDepartment = departmentFilter === "all" || employee.department === departmentFilter;
     
     return matchesSearch && matchesDepartment;
   });
@@ -149,7 +149,7 @@ const EmployeesPage = () => {
                 <SelectValue placeholder="Filter by department" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">All Departments</SelectItem>
                 {departments.map(dept => (
                   <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                 ))}
