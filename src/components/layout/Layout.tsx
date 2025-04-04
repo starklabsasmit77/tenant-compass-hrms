@@ -203,7 +203,7 @@ const Layout = ({ children }: LayoutProps) => {
                 to={item.to} 
                 isActive={location.pathname === item.to}
                 isCollapsed={isCollapsed}
-                badge={item.badge}
+                badge={'badge' in item ? item.badge : undefined}
               />
             ))}
           </div>
